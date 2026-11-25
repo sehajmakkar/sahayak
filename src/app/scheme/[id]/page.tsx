@@ -12,7 +12,7 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
   const s = SCHEME_BY_ID[id];
-  return s ? { title: `${s.name.en} — Sahayak`, description: s.benefit.en } : {};
+  return s ? { title: `${s.name.en} — Yojana Setu`, description: s.benefit.en } : {};
 }
 
 export default async function Page({ params }: { params: Promise<{ id: string }> }) {

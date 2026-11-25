@@ -1,6 +1,7 @@
 // Profile fields = the questions we ask. Every field here must be used by at least
 // one scheme's eligibility rule (enforced by tests/data.test.ts).
-import type { Answer, FieldKey, Profile, Text } from "./types";
+import { WORDS } from "../i18n/words";
+import { pick, type Answer, type FieldKey, type Lang, type Profile, type Text } from "./types";
 
 export type Option = {
   id: string;
@@ -337,10 +338,10 @@ export function visibleFields(answers: Profile["answers"]): FieldDef[] {
 }
 
 /** Human label for a stored answer. */
-export function answerLabel(def: FieldDef, value: Answer, lang: "hi" | "en"): string {
-  if (value === null || value === undefined) return lang === "hi" ? "पता नहीं" : "Don't know";
-  if (def.kind === "number") return `${value} ${lang === "hi" ? "साल" : "years"}`;
-  if (def.kind === "bool") return value ? def.yesText[lang] : def.noText[lang];
+export function answerLabel(def: FieldDef, value: Answer, lang: Lang): string {
+  if (value === null || value === undefined) return WORDS[lang].dontKnow;
+  if (def.kind === "number") return `${value} ${WORDS[lang].years}`;
+  if (def.kind === "bool") return pick(value ? def.yesText : def.noText, lang);
   const opt = def.options.find((o) => o.id === value);
-  return opt ? opt.label[lang] : String(value);
+  return opt ? pick(opt.label, lang) : String(value);
 }

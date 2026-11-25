@@ -1,10 +1,10 @@
 "use client";
 
-import { ArrowLeft, Check, CircleHelp, ExternalLink, Info, Phone, X } from "lucide-react";
+import { ArrowLeft, Check, CircleHelp, ExternalLink, Info, MapPin, Phone, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useApp } from "@/components/AppProvider";
-import { ApplyButton, ShareButton } from "@/components/SchemeCard";
+import { ApplyButton, DocReadiness, ShareButton } from "@/components/SchemeCard";
 import { SpeakButton } from "@/components/Voice";
 import { CHANNEL_ICON, CategoryIcon } from "@/components/icons";
 import { describeRule } from "@/lib/core/describe";
@@ -12,7 +12,9 @@ import { CATEGORY_INFO, CHANNEL_INFO, DOCUMENTS } from "@/lib/core/labels";
 import { evaluate } from "@/lib/core/rules";
 import type { Profile, Rule, Tri } from "@/lib/core/types";
 import { SCHEME_BY_ID, isOfficialUrl } from "@/lib/schemes";
+import { nearestUrl } from "@/lib/maps";
 import { loadProfile } from "@/lib/storage";
+import { useDocs } from "@/lib/useDocs";
 
 function StatusIcon({ st }: { st: Tri | null }) {
   if (st === "pass") return <Check size={16} className="ic-success" aria-label="Met" />;
@@ -25,7 +27,7 @@ export function SchemeDetail({ id }: { id: string }) {
   const { lang, t, tx } = useApp();
   const s = SCHEME_BY_ID[id];
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [checked, setChecked] = useState<Record<string, boolean>>({});
+  const { docs, toggle } = useDocs();
   useEffect(() => setProfile(loadProfile()), []);
 
   const rules: Rule[] = "all" in s.eligibility ? s.eligibility.all : [s.eligibility];
@@ -99,11 +101,13 @@ export function SchemeDetail({ id }: { id: string }) {
 
           <section className="card">
             <h2 className="card-title">{t("documents")}</h2>
+            <p className="hint">{t("myDocsSub")}</p>
+            <DocReadiness required={s.documents} have={docs} />
             <ul className="doc-list">
               {s.documents.map((d) => (
                 <li key={d}>
                   <label>
-                    <input type="checkbox" checked={!!checked[d]} onChange={(e) => setChecked({ ...checked, [d]: e.target.checked })} />
+                    <input type="checkbox" checked={docs.has(d)} onChange={(e) => toggle(d, e.target.checked)} />
                     <span>{DOCUMENTS[d]?.[lang] ?? d}</span>
                   </label>
                 </li>
@@ -131,10 +135,18 @@ export function SchemeDetail({ id }: { id: string }) {
             <ul className="channel-list">
               {s.channels.map((c) => {
                 const Icon = CHANNEL_ICON[c];
+                const near = nearestUrl(c);
                 return (
                   <li key={c}>
                     <Icon size={16} strokeWidth={1.8} aria-hidden />
-                    <span>{tx(CHANNEL_INFO[c].label)}</span>
+                    <span className="channel-text">
+                      {tx(CHANNEL_INFO[c].label)}
+                      {near && (
+                        <a className="near-link" href={near} target="_blank" rel="noopener noreferrer">
+                          <MapPin size={13} aria-hidden /> {t("findNearest")}
+                        </a>
+                      )}
+                    </span>
                   </li>
                 );
               })}

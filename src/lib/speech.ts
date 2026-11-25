@@ -1,7 +1,8 @@
 // Free, built-in browser speech: speechSynthesis (read aloud) + SpeechRecognition (voice answers).
 import type { Lang } from "./core/types";
+import { SPEECH_LOCALE, WORDS } from "./i18n/words";
 
-const bcp = (lang: Lang) => (lang === "hi" ? "hi-IN" : "en-IN");
+const bcp = (lang: Lang) => SPEECH_LOCALE[lang];
 
 export const canSpeak = () => typeof window !== "undefined" && "speechSynthesis" in window;
 
@@ -9,7 +10,7 @@ export function speak(text: string, lang: Lang, onEnd?: () => void) {
   if (!canSpeak()) return;
   const synth = window.speechSynthesis;
   synth.cancel();
-  const u = new SpeechSynthesisUtterance(text.replace(/[•·|]/g, ",").replace(/₹/g, lang === "hi" ? " रुपये " : " rupees "));
+  const u = new SpeechSynthesisUtterance(text.replace(/[•·|]/g, ",").replace(/₹/g, WORDS[lang].rupees));
   u.lang = bcp(lang);
   u.rate = 0.9;
   const voice = synth.getVoices().find((v) => v.lang.replace("_", "-").toLowerCase().startsWith(bcp(lang).toLowerCase()));

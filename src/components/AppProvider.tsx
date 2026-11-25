@@ -1,7 +1,8 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
-import type { Lang, Text } from "@/lib/core/types";
+import "@/lib/i18n/apply";
+import { LANGS, pick, type Lang, type Text } from "@/lib/core/types";
 import { translate, type StringKey } from "@/lib/i18n/strings";
 import { loadLang, saveLang } from "@/lib/storage";
 import { stopSpeaking } from "@/lib/speech";
@@ -20,7 +21,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const l = loadLang();
-    if (l === "hi" || l === "en") setLangState(l);
+    if ((LANGS as readonly string[]).includes(l ?? "")) setLangState(l as Lang);
   }, []);
 
   useEffect(() => {
@@ -34,7 +35,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const t = useCallback((k: StringKey) => translate(k, lang), [lang]);
-  const tx = useCallback((x: Text) => x[lang], [lang]);
+  const tx = useCallback((x: Text) => pick(x, lang), [lang]);
 
   return <AppContext.Provider value={{ lang, setLang, t, tx }}>{children}</AppContext.Provider>;
 }

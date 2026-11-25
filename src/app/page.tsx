@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, ClipboardList, FileCheck2, Landmark, Lock, ShieldCheck, UserRound, BadgeCheck, Ban } from "lucide-react";
+import { ArrowRight, MessageCircle, ClipboardList, FileCheck2, Landmark, Lock, ShieldCheck, UserRound, BadgeCheck, Ban } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useApp } from "@/components/AppProvider";
@@ -10,9 +10,28 @@ import { CATEGORIES } from "@/lib/core/types";
 import { DEMOS } from "@/lib/demo";
 import { SCHEMES } from "@/lib/schemes";
 import { loadProfile } from "@/lib/storage";
+import { useCssVar } from "@/lib/useCssVar";
+import CountUp from "@/components/reactbits/CountUp";
+import GradientText from "@/components/reactbits/GradientText";
+import ShinyText from "@/components/reactbits/ShinyText";
+import SpotlightCard from "@/components/reactbits/SpotlightCard";
+
+/** Business number for the WhatsApp bot, digits only with country code (e.g. 919876543210). */
+const WA_NUMBER = (process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "").replace(/\D/g, "");
+
+/** ReactBits SpotlightCard, themed with the app's CSS variables so it follows light and dark mode. */
+const SPOT = {
+  theme: "light" as const,
+  spotlightColor: "var(--spot)",
+  intensity: 0.5,
+  spotlightSize: 260,
+  style: { "--spotlight-card-surface": "var(--surface)", "--spotlight-card-border": "var(--line)", "--spotlight-card-shadow": "var(--shadow)" } as React.CSSProperties,
+};
 
 export default function Home() {
   const { t, tx } = useApp();
+  const brand = useCssVar("--brand", "#1747a6");
+  const shine = useCssVar("--shine", "#7aa2ff");
   const [state, setState] = useState<"new" | "partial" | "done">("new");
 
   useEffect(() => {
@@ -28,8 +47,15 @@ export default function Home() {
       <section className="hero">
         <div className="container hero-grid">
           <div className="hero-copy">
-            <span className="eyebrow eyebrow-brand">{t("heroEyebrow")}</span>
-            <h1>{t("heroTitle")}</h1>
+            <span className="eyebrow eyebrow-brand">
+              <ShinyText text={t("heroEyebrow")} color={brand} shineColor={shine} speed={3} delay={1.5} />
+            </span>
+            <h1>
+              {t("heroTitleA")}{" "}
+              <GradientText className="hero-gradient" colors={["var(--grad-1)", "var(--grad-2)", "var(--grad-3)"]} animationSpeed={7}>
+                {t("heroTitleB")}
+              </GradientText>
+            </h1>
             <p className="lead">{t("heroSub")}</p>
             <div className="hero-actions">
               <Link href="/profile" className="btn btn-primary btn-lg">
@@ -52,15 +78,21 @@ export default function Home() {
 
           <div className="stats card">
             <div>
-              <strong>{SCHEMES.length}</strong>
+              <strong>
+                <CountUp to={SCHEMES.length} duration={1.4} />
+              </strong>
               <span>{t("statSchemes")}</span>
             </div>
             <div>
-              <strong>{CATEGORIES.length}</strong>
+              <strong>
+                <CountUp to={CATEGORIES.length} duration={1.4} />
+              </strong>
               <span>{t("statCategories")}</span>
             </div>
             <div>
-              <strong>2</strong>
+              <strong>
+                <CountUp from={10} to={2} duration={1.4} />
+              </strong>
               <span>{t("statTime")}</span>
             </div>
             <div>
@@ -79,14 +111,14 @@ export default function Home() {
             { icon: FileCheck2, title: t("step2Title"), body: t("step2") },
             { icon: Landmark, title: t("step3Title"), body: t("step3") },
           ].map((s, i) => (
-            <div key={i} className="card feature">
+            <SpotlightCard key={i} {...SPOT} className="card feature">
               <span className="feature-icon">
                 <s.icon size={20} strokeWidth={1.8} aria-hidden />
               </span>
               <span className="feature-step">0{i + 1}</span>
               <h3>{s.title}</h3>
               <p className="muted">{s.body}</p>
-            </div>
+            </SpotlightCard>
           ))}
         </div>
       </section>
@@ -100,16 +132,18 @@ export default function Home() {
         </div>
         <div className="grid-4">
           {Object.entries(DEMOS).map(([key, d]) => (
-            <Link key={key} href={`/results?demo=${key}`} className="card demo-card">
-              <span className="demo-avatar">
-                <UserRound size={18} aria-hidden />
-              </span>
-              <strong>{tx(d.label)}</strong>
-              <span className="muted">{tx(d.summary)}</span>
-              <span className="link-arrow">
-                {t("viewResults")} <ArrowRight size={14} aria-hidden />
-              </span>
-            </Link>
+            <SpotlightCard key={key} {...SPOT} className="card demo-card">
+              <Link href={`/results?demo=${key}`} className="demo-link">
+                <span className="demo-avatar">
+                  <UserRound size={18} aria-hidden />
+                </span>
+                <strong>{tx(d.label)}</strong>
+                <span className="muted">{tx(d.summary)}</span>
+                <span className="link-arrow">
+                  {t("viewResults")} <ArrowRight size={14} aria-hidden />
+                </span>
+                </Link>
+            </SpotlightCard>
           ))}
         </div>
       </section>
@@ -130,7 +164,21 @@ export default function Home() {
       </section>
 
       <section className="section container">
-        <div className="card trust">
+        {WA_NUMBER && (
+          <SpotlightCard {...SPOT} className="card wa-card">
+            <span className="feature-icon">
+              <MessageCircle size={20} strokeWidth={1.8} aria-hidden />
+            </span>
+            <div className="wa-copy">
+              <h2 className="section-title">{t("waTitle")}</h2>
+              <p className="muted">{t("waSub")}</p>
+            </div>
+            <a className="btn btn-primary" href={`https://wa.me/${WA_NUMBER}?text=Hi`} target="_blank" rel="noopener noreferrer">
+              {t("waCta")} <ArrowRight size={16} aria-hidden />
+            </a>
+          </SpotlightCard>
+        )}
+        <SpotlightCard {...SPOT} className="card trust">
           <div>
             <h2 className="section-title">{t("trustTitle")}</h2>
             <p className="muted">{t("helperNote")}</p>
@@ -148,7 +196,7 @@ export default function Home() {
               </li>
             ))}
           </ul>
-        </div>
+        </SpotlightCard>
       </section>
     </>
   );

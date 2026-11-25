@@ -1,7 +1,7 @@
-# CLAUDE.md — Sahayak (सहायक)
+# CLAUDE.md — Yojana Setu (योजना सेतु)
 
-Sahayak helps people in rural India with low literacy or limited internet find the government
-schemes they may be eligible for. A user fills a short two-step form (English or Hindi). Sahayak
+Yojana Setu helps people in rural India with low literacy or limited internet find the government
+schemes they may be eligible for. A user fills a short two-step form (English or Hindi). Yojana Setu
 then shows the **top 10 schemes**, each with plain-language reasons, a document checklist and the
 **official** link to apply.
 
@@ -28,7 +28,13 @@ npm run validate:data  # run after ANY edit to data/schemes.json
 - **Optional AI**: Google Gemini free tier (`GEMINI_API_KEY` in `.env`), or Groq as an alternative. The model chain is
   `GEMINI_MODEL` → `gemini-flash-lite-latest` → `gemini-flash-latest`. Use the `-latest` aliases because specific Gemini versions get retired.
 - **Voice**: the browser's Web Speech API (free, no key). "Listen" reads results and schemes aloud, and "Dictate" fills the free-text need box.
-- Plain CSS in `src/app/globals.css` (no Tailwind, no UI kit) and `lucide-react` for icons.
+- Plain CSS in `src/app/globals.css` (no Tailwind, no UI kit) and `lucide-react` for icons. A few **ReactBits** components
+  (TS + CSS variants, in `src/components/reactbits/`) add motion: SpotlightCard, CountUp, GradientText, ShinyText.
+  Theme them with the app's CSS variables (ShinyText computes colors in JS, so pass resolved values via `useCssVar`).
+- **OCR**: Tesseract.js (eng + hin) in the browser, loaded only when the user taps "Scan a document". `src/lib/core/ocr-extract.ts`
+  turns the text into profile answers; Aadhaar-shaped and other long numbers are stripped first, and the user confirms each field.
+- **WhatsApp bot**: Meta WhatsApp Cloud API webhook at `/api/whatsapp`. The bot (`src/lib/whatsapp/bot.ts`) is pure and stateless:
+  the answers so far ride in each reply id, so there is no database. `?dry=1` simulates it in development.
 
 ## Layout
 
@@ -50,7 +56,16 @@ src/lib/speech.ts            # read-aloud (TTS) + dictation (speech recognition)
 src/lib/demo.ts              # sample personas for "Try an example" (?demo=farmer|widow|student|mother)
 src/lib/i18n/strings.ts      # every UI string, hi + en
 src/app/                     # pages: / , /profile (two-step form), /results, /scheme/[id], /schemes, /privacy
-src/components/              # Header/Footer, SchemeCard, Voice, icons (category/channel → lucide)
+src/components/              # Header/Footer, SchemeCard, Voice, DocScan (OCR), icons (+ BrandMark logo)
+src/components/reactbits/    # ReactBits components (SpotlightCard, CountUp, GradientText, ShinyText)
+src/lib/core/ocr-extract.ts  # OCR text → profile answers (pure)
+src/lib/core/voice-answer.ts # spoken transcript → form answer (pure)
+src/lib/share.ts             # shareable results link (?p=), validated decode
+src/lib/useDocs.ts           # "documents I have" (localStorage) + readiness
+src/lib/i18n/                # strings.*.ts, content.*.ts, words.ts (grammar per language), apply.ts
+src/app/compare, src/app/print # side-by-side compare; printable summary with QR codes
+src/lib/whatsapp/            # bot.ts (stateless chat flow, pure) + cloud.ts (Cloud API transport)
+src/app/api/whatsapp         # WhatsApp webhook (GET verify, POST messages)
 src/app/api/enhance          # AI re-rank + simple "why" (shortlist IDs only)
 src/app/api/need             # AI free-text need → categories
 scripts/validate-data.ts
@@ -76,7 +91,11 @@ scripts/validate-data.ts
   and `step`), and use it in at least one scheme rule. The validator fails if a field is unused.
 - **Rule format:** `{ "field": "age", "op": "between", "value": [18, 40] }`, nested with `{ "all": [...] }` and `{ "any": [...] }`.
   Ops: `eq, in, notIn, gte, lte, between`. Range fields (income, land, disability) compare by their option ranges.
-- **New UI text** goes in `strings.ts` with both languages. Never hard-code visible text.
+- **New UI text** goes in `strings.ts` (en + hi) **and** in `strings.bn.ts`, `strings.mr.ts`, `strings.ta.ts` (TypeScript fails if a key is missing). Never hard-code visible text.
+- **Languages**: `en, hi` are complete everywhere. `bn, mr, ta` cover the UI, form, labels and scheme names + benefits
+  (`src/lib/i18n/content.*.ts`, `data/i18n/schemes.*.json`, merged at startup by `src/lib/i18n/apply.ts`). Scheme descriptions and
+  conditions fall back via `pick()` (Marathi → Hindi, Bengali/Tamil → English). Always render `Text` with `tx()` / `pick()`, never `x[lang]`.
+  Keep amounts as digits in translations; the numbers must match the English text exactly. The WhatsApp bot stays English/Hindi.
 - **Design rules (from the user):** professional look, **no emojis anywhere** (use `lucide-react` icons), and keep the form
   to **two steps** (`step: 1 | 2` on each field in `fields.ts`) with compact controls: selects, segmented buttons, Yes/No toggles.
   Every field is optional; blank means "unknown". The default language is English, with a Hindi toggle in the header.

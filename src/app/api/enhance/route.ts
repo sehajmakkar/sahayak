@@ -6,7 +6,7 @@ import { SCHEME_BY_ID } from "@/lib/schemes";
 import { completeJSON, llmEnabled, parseJSON } from "@/lib/llm/provider";
 
 const Body = z.object({
-  lang: z.enum(["hi", "en"]),
+  lang: z.enum(["en", "hi", "bn", "mr", "ta"]),
   profile: z.array(z.string().max(160)).max(30),
   needText: z.string().max(400).optional(),
   candidates: z
@@ -31,7 +31,13 @@ export async function POST(req: Request) {
     })
     .join("\n");
 
-  const language = lang === "hi" ? "simple Hindi (Devanagari script)" : "simple English";
+  const language = {
+    en: "simple English",
+    hi: "simple Hindi (Devanagari script)",
+    bn: "simple Bengali (Bengali script)",
+    mr: "simple Marathi (Devanagari script)",
+    ta: "simple Tamil (Tamil script)",
+  }[lang];
   const system = [
     "You help poor and low-literacy people in rural India understand government schemes.",
     "You receive a person's profile and a shortlist of schemes that already passed eligibility checks.",

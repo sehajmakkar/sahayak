@@ -1,8 +1,11 @@
 "use client";
 
+import { Languages } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useApp } from "./AppProvider";
+import { BrandMark } from "./icons";
+import { LANG_NAMES, LANGS, type Lang } from "@/lib/core/types";
 
 export function Header() {
   const { lang, setLang, t } = useApp();
@@ -17,10 +20,10 @@ export function Header() {
       <div className="container topbar-inner">
         <Link href="/" className="brand" aria-label={t("home")}>
           <span className="brand-mark" aria-hidden>
-            स
+            <BrandMark />
           </span>
           <span className="brand-text">
-            <strong>Sahayak</strong>
+            <strong>{t("appName")}</strong>
             <small>{t("appTag")}</small>
           </span>
         </Link>
@@ -30,14 +33,17 @@ export function Header() {
               {n.label}
             </Link>
           ))}
-          <div className="lang-switch" role="group" aria-label="Language">
-            <button aria-pressed={lang === "en"} onClick={() => setLang("en")}>
-              EN
-            </button>
-            <button aria-pressed={lang === "hi"} onClick={() => setLang("hi")}>
-              हिं
-            </button>
-          </div>
+          <label className="lang-select">
+            <Languages size={16} aria-hidden />
+            <span className="sr-only">{t("language")}</span>
+            <select value={lang} onChange={(e) => setLang(e.target.value as Lang)} aria-label={t("language")}>
+              {LANGS.map((l) => (
+                <option key={l} value={l}>
+                  {LANG_NAMES[l]}
+                </option>
+              ))}
+            </select>
+          </label>
         </nav>
       </div>
     </header>
@@ -50,7 +56,7 @@ export function Footer() {
     <footer className="footer">
       <div className="container footer-inner">
         <div>
-          <strong>Sahayak</strong>
+          <strong>{t("appName")}</strong>
           <p className="muted">{t("footer")}</p>
         </div>
         <nav className="footer-links">

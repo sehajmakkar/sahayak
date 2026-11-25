@@ -1,16 +1,19 @@
 "use client";
 
-import { ArrowLeft, ArrowRight, Check, Lock } from "lucide-react";
+import { ArrowLeft, ArrowRight, AudioLines, Check, Lock } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useApp } from "@/components/AppProvider";
 import { CategoryIcon } from "@/components/icons";
+import { DocScan } from "@/components/DocScan";
 import { MicButton } from "@/components/Voice";
+import { useVoiceSupported, VoiceForm } from "@/components/VoiceForm";
 import { visibleFields, type FieldDef } from "@/lib/core/fields";
 import { CATEGORY_INFO } from "@/lib/core/labels";
 import { detectNeeds } from "@/lib/core/needs";
 import { CATEGORIES, emptyProfile, type Answer, type Category, type FieldKey, type Profile } from "@/lib/core/types";
 import { loadProfile, saveProfile } from "@/lib/storage";
+import { useDocs } from "@/lib/useDocs";
 
 /** Drop answers for fields that are no longer shown (e.g. pregnancy after switching gender). */
 function prune(answers: Profile["answers"]): Profile["answers"] {
@@ -27,6 +30,9 @@ export default function ProfilePage() {
   const [step, setStep] = useState<1 | 2>(1);
   const [busy, setBusy] = useState(false);
   const [toast, setToast] = useState("");
+  const { add: addDocs } = useDocs();
+  const voiceOk = useVoiceSupported();
+  const [voice, setVoice] = useState(false);
 
   useEffect(() => {
     const p = loadProfile() ?? emptyProfile();
@@ -88,10 +94,28 @@ export default function ProfilePage() {
 
   return (
     <div className="container container-narrow page">
-      <div className="page-head">
-        <h1>{t("formTitle")}</h1>
-        <p className="muted">{t("formSub")}</p>
+      <div className="page-head page-head-row">
+        <div>
+          <h1>{t("formTitle")}</h1>
+          <p className="muted">{t("formSub")}</p>
+        </div>
+        {voiceOk && (
+          <button type="button" className="btn btn-primary" onClick={() => setVoice(true)}>
+            <AudioLines size={18} aria-hidden /> {t("voiceMode")}
+          </button>
+        )}
       </div>
+
+      {voice && (
+        <VoiceForm
+          answers={profile.answers}
+          onAnswer={(key, value) => setAnswer(key, value)}
+          onClose={() => {
+            setVoice(false);
+            goTo(2);
+          }}
+        />
+      )}
 
       <ol className="stepper" aria-label="Progress">
         {([1, 2] as const).map((n) => (
@@ -117,6 +141,15 @@ export default function ProfilePage() {
           else finish();
         }}
       >
+        {step === 1 && (
+          <DocScan
+            onApply={(found, docIds) => {
+              persist({ ...profile, answers: prune({ ...profile.answers, ...found }), done: false });
+              if (docIds.length) addDocs(docIds);
+            }}
+          />
+        )}
+
         <div className="form-grid">
           {mainFields.map((f) => (
             <FieldControl key={f.key} def={f} value={profile.answers[f.key]} onChange={(v) => setAnswer(f.key, v)} />

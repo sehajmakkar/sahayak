@@ -9,11 +9,11 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-latin", display: "sw
 const devanagari = Noto_Sans_Devanagari({ subsets: ["devanagari"], weight: ["400", "500", "600", "700"], variable: "--font-deva", display: "swap" });
 
 export const metadata: Metadata = {
-  title: "Sahayak — Government Scheme Finder",
+  title: "Yojana Setu — Government Scheme Finder",
   description: "Find the government schemes you may be eligible for, with clear reasons, document checklists and official links to apply.",
   manifest: "/manifest.webmanifest",
-  icons: { icon: "/icon.svg", apple: "/icon-192.png" },
-  appleWebApp: { capable: true, title: "Sahayak", statusBarStyle: "default" },
+  icons: { icon: [{ url: "/favicon.ico", sizes: "any" }, { url: "/icon.svg", type: "image/svg+xml" }], apple: "/apple-touch-icon.png" },
+  appleWebApp: { capable: true, title: "Yojana Setu", statusBarStyle: "default" },
 };
 
 export const viewport: Viewport = {

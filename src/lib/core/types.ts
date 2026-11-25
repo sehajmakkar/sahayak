@@ -1,8 +1,18 @@
 // Domain types shared by the app, scripts, tests and eval.
 // This module is pure (no I/O) so it can run in the browser, on the server, and in tests.
 
-export type Lang = "hi" | "en";
-export type Text = { hi: string; en: string };
+export const LANGS = ["en", "hi", "bn", "mr", "ta"] as const;
+export type Lang = (typeof LANGS)[number];
+/** English and Hindi are always present; other languages are optional and fall back (see pick). */
+export type Text = { hi: string; en: string } & Partial<Record<"bn" | "mr" | "ta", string>>;
+
+/** Native names for the language menu. */
+export const LANG_NAMES: Record<Lang, string> = { en: "English", hi: "हिंदी", bn: "বাংলা", mr: "मराठी", ta: "தமிழ்" };
+
+/** Text in the chosen language. Marathi falls back to Hindi (same script); Bengali and Tamil to English. */
+export function pick(x: Text, lang: Lang): string {
+  return x[lang] ?? (lang === "mr" ? x.hi : x.en);
+}
 
 export const CATEGORIES = [
   "farming",

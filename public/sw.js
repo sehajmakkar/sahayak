@@ -1,6 +1,6 @@
-// Sahayak service worker: keeps the app usable on weak / no internet.
-const CACHE = "sahayak-v2";
-const SHELL = ["/", "/profile", "/results", "/schemes", "/privacy", "/manifest.webmanifest", "/icon.svg", "/icon-192.png"];
+// Yojana Setu service worker: keeps the app usable on weak / no internet.
+const CACHE = "yojana-setu-v3";
+const SHELL = ["/", "/profile", "/results", "/schemes", "/privacy", "/manifest.webmanifest", "/icon.svg", "/icon-192.png", "/favicon.ico"];
 
 self.addEventListener("install", (event) => {
   self.skipWaiting();
